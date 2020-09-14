@@ -1,22 +1,27 @@
+log("info", "Loading...");
 let firstStart = true;
 
-if (String.prototype) 
-	if (!String.prototype.format) {
-		String.prototype.format = function() {
-		var args = arguments;
-		return this.replace(/{(\d+)}/g, function(match, number) { 
-			return typeof args[number] != 'undefined'
-			? args[number]
-			: match
-			;
-		});
-		};
-	}
-	if (!String.prototype.isEmpty) {
-		String.prototype.isEmpty = function() {
-			return (this.length === 0 || !this.trim());
-		};
-	}
+if (String.prototype) {
+	String.prototype.format = String.prototype.format || function () {
+		"use strict";
+		var str = this.toString();
+		if (arguments.length) {
+			var t = typeof arguments[0];
+			var key;
+			var args = ("string" === t || "number" === t) ?
+				Array.prototype.slice.call(arguments)
+				: arguments[0];
+
+			for (key in args) {
+				str = str.replace(new RegExp("\\{" + key + "\\}", "gi"), args[key]);
+			}
+		}
+
+		return str;
+	};
+	String.prototype.isEmpty = String.prototype.isEmpty || function() {
+		return (this.length === 0 || !this.trim());
+	};
 }
 
 function log(severity, message) {
@@ -107,7 +112,7 @@ function onIncomingEvent(con, name, data) {
 
 function OnChannelListFinished() {
 	name = con.book.getServer().name;
-	log("info", `Connected to \"${name}\". Setting TTS volume to 0`);
+	log("warn", `Connected to \"${name}\". Setting TTS volume to 0`);
 	con.transientSettings.synth.volume = 0;
 }
 
@@ -145,3 +150,4 @@ async function postJson(url = '', data = {}) {
 	return response.json();
   }
 */
+log("info", "Loaded!");
